@@ -18,11 +18,12 @@ import tempfile
 import os
 import numpy as np
 
-executables = dict(sex="/data/packages/astromatic/usr/bin/sex",
+executables = dict(sex="/data2/jjlee/kmtnet/data/test/kmtnet_sn_pipeline/usr/bin/sex",
                    #swarp="/data/packages/astromatic/usr/bin/swarp",
-                   wcsremap="wcsremap-1.0.1/wcsremap",
-                   scamp="scamp",
-                   hotpants="../tools/hotpants_v5.1.10b/hotpants")
+                   wcsremap="/data2/jjlee/kmtnet/tools/tools/wcsremap-1.0.1/wcsremap",
+                   scamp="/packages/astromatic/usr/bin/scamp",
+                   hotpants="/data2/jjlee/kmtnet/tools/tools/hotpants_v5.1.10b/hotpants",
+                   swarp="/packages/astromatic/usr/bin/swarp")
 
 params_dir = "params"
 
@@ -73,6 +74,34 @@ def run_sex(filename, outname_root=None, tmpdir=".",
 
     return os.path.join(tmpdir, outname)
 
+
+def run_swarp(filename, outname_root=None, tmpdir=".",
+              params_dir=params_dir):
+
+    filename = os.path.abspath(filename)
+
+    if outname_root is None:
+        filename_base = os.path.basename(filename)
+        outname_root, ext_name = os.path.splitext(filename_base)
+
+    outname = os.path.extsep.join([outname_root, "resamp", "fits"])
+
+    args = [executables["swarp"], filename]
+
+    # as we do not combine, output name is fixed to "resamp".
+    param_files = [#("IMAGEOUT_NAME", outname),
+                   ("COMBINE", "N"),
+                   ("SUBTRACT_BACK", "N")]
+
+    params_dir = os.path.abspath(params_dir)
+    for par_name, par_file in param_files:
+        args.extend(["-%s" % par_name, par_file])
+
+    with temp_chdir(tmpdir):
+        subprocess.call(args)
+
+    return os.path.join(tmpdir, outname)
+
 def run_scamp(filename, tmpdir=".",
               params_dir=params_dir):
 
@@ -97,7 +126,7 @@ def run_scamp(filename, tmpdir=".",
     outname_root, ext_name = os.path.splitext(filename)
     return os.path.extsep.join([outname_root, "head"])
 
-def update_header(inname, headername, outdir, prefix):
+def update_header(inname, headername, outdir, prefix, extnum=0):
     import astropy.io.fits as pyfits
 
     root, ext = os.path.splitext(os.path.basename(inname))
@@ -108,9 +137,9 @@ def update_header(inname, headername, outdir, prefix):
     for l in open(headername):
         k, v, c = tuple(pyfits.Card.fromstring(l))
         if k != "END":
-            f[0].header.set(k, v, comment=c)
+            f[extnum].header.set(k, v, comment=c)
 
-    f[0].data[~np.isfinite(f[0].data)] = 0.
+    #f[0].data[~np.isfinite(f[0].data)] = 0.
     f.writeto(outname, clobber=True)
     return outname
 
@@ -151,21 +180,21 @@ def make_diff_image(src_name, ref_name, out_name):
     tmpdir = tempfile.mkdtemp(dir=".")
     print tmpdir
 
-    catname = run_sex(src_name, tmpdir=tmpdir)
+    #catname = run_sex(src_name, tmpdir=tmpdir)
     #catname = "tmp/uwife040_FeII_S0_1v0_x_starsub.cat"
 
-    headername = run_scamp(catname, tmpdir=tmpdir)
+    #headername = run_scamp(catname, tmpdir=tmpdir)
     #headername = "tmp/uwife040_FeII_S0_1v0_x_starsub.head"
 
-    src_templatename = update_header(src_name, headername,
-                                     outdir=tmpdir, prefix="nh.fits")
+    #src_templatename = update_header(src_name, headername,
+    # outdir=tmpdir, prefix="nh.fits")
 
     #src_templatename = "tmp/uwife040_FeII_S0_1v0_x_starsub.nh.fits"
 
-    remaped_ref = run_wcsremap(ref_name, src_templatename, outdir=tmpdir)
+    remaped_ref = run_wcsremap(ref_name, src_name, outdir=tmpdir)
     #remaped_ref = "tmp/uwife040_H_S0_1v0_x_starsub.ref.remap.fits"
 
-    run_hotpants(src_templatename,
+    run_hotpants(src_name,
                  templatename=remaped_ref,
                  outname=out_name)
 
