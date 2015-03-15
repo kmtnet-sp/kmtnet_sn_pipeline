@@ -1,5 +1,5 @@
-from make_diff_image import (tempfile, run_sex, run_scamp, update_header,
-                             run_swarp)
+from ksppy.hotpants import (tempfile, run_sex, run_scamp, update_header,
+                            run_swarp)
 
 def update_wcs(src_name):
     tmpdir = tempfile.mkdtemp(dir=".")
