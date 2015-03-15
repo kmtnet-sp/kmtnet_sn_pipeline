@@ -25,7 +25,11 @@ executables = dict(sex="/data2/jjlee/kmtnet/data/test/kmtnet_sn_pipeline/usr/bin
                    hotpants="/data2/jjlee/kmtnet/tools/tools/hotpants_v5.1.10b/hotpants",
                    swarp="/packages/astromatic/usr/bin/swarp")
 
-params_dir = "params"
+_ROOT = os.path.abspath(os.path.dirname(__file__))
+def get_params_dir():
+    return os.path.join(_ROOT, 'params')
+
+params_dir = get_params_dir()
 
 import contextlib
 
