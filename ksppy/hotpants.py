@@ -18,11 +18,14 @@ import tempfile
 import os
 import numpy as np
 
-executables = dict(sex="/data2/jjlee/kmtnet/data/test/kmtnet_sn_pipeline/usr/bin/sex",
+my_env = os.environ.copy()
+my_env["LD_LIBRARY_PATH"]="/packages/astromatic/usr/lib"
+
+executables = dict(sex="/packages/astromatic/usr/bin/sex",
                    #swarp="/data/packages/astromatic/usr/bin/swarp",
-                   wcsremap="/data2/jjlee/kmtnet/tools/tools/wcsremap-1.0.1/wcsremap",
+                   wcsremap="wcsremap",
                    scamp="/packages/astromatic/usr/bin/scamp",
-                   hotpants="/data2/jjlee/kmtnet/tools/tools/hotpants_v5.1.10b/hotpants",
+                   hotpants="hotpants",
                    swarp="/packages/astromatic/usr/bin/swarp")
 
 _ROOT = os.path.abspath(os.path.dirname(__file__))
@@ -62,6 +65,38 @@ def run_sex(filename, outname_root=None, tmpdir=".",
 
     param_files = [("c", "default.sex"),
                    ("PARAMETERS_NAME", "default4psfex.param"),
+                   ("FILTER_NAME", "default.conv"),
+                   ("STARNNW_NAME", "default.nnw")]
+
+    params_dir = os.path.abspath(params_dir)
+    for par_name, par_file in param_files:
+        a1 = "-%s" % par_name
+        a2 = os.path.join(params_dir, par_file)
+        args.extend([a1, a2])
+
+    args.extend(["-CATALOG_NAME", outname])
+
+    with temp_chdir(tmpdir):
+        subprocess.call(args)
+
+    return os.path.join(tmpdir, outname)
+
+
+def run_sex_diff(filename, outname_root=None, tmpdir=".",
+                 params_dir=params_dir):
+
+    filename = os.path.abspath(filename)
+
+    if outname_root is None:
+        filename_base = os.path.basename(filename)
+        outname_root, ext_name = os.path.splitext(filename_base)
+
+    outname = os.path.extsep.join([outname_root, "cat"])
+
+    args = [executables["sex"], filename]
+
+    param_files = [("c", "default_diff.sex"),
+                   ("PARAMETERS_NAME", "default4psfex_diff.param"),
                    ("FILTER_NAME", "default.conv"),
                    ("STARNNW_NAME", "default.nnw")]
 
@@ -125,7 +160,7 @@ def run_scamp(filename, tmpdir=".",
 
     with temp_chdir(tmpdir):
         print args
-        subprocess.call(args)
+        subprocess.call(args, env=my_env)
 
     outname_root, ext_name = os.path.splitext(filename)
     return os.path.extsep.join([outname_root, "head"])
