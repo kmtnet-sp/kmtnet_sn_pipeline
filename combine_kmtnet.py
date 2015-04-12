@@ -97,7 +97,7 @@ def combine_kmtnet(fn):
         hdu.verify("fix")
 
         fout = os.path.extsep.join([fn_name, chip_id]) + fn_ext
-        hdu.writeto(fout, clobber=True)
+        hdu.writeto(fout, output_verify="fix", clobber=True)
 
 
 def test():
