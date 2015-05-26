@@ -130,7 +130,7 @@ def run_swarp(filename, outname_root=None, tmpdir=".",
     # as we do not combine, output name is fixed to "resamp".
     param_files = [#("IMAGEOUT_NAME", outname),
                    ("COMBINE", "N"),
-                   ("SUBTRACT_BACK", "N")]
+                   ("SUBTRACT_BACK", "Y")]
 
     params_dir = os.path.abspath(params_dir)
     for par_name, par_file in param_files:
@@ -167,11 +167,15 @@ def run_scamp(filename, tmpdir=".",
 
 def update_header(inname, headername, outdir, prefix, extnum=0):
     import astropy.io.fits as pyfits
+    import os
 
     root, ext = os.path.splitext(os.path.basename(inname))
     outname = os.path.join(outdir, os.path.extsep.join([root, prefix]))
 
     f = pyfits.open(inname)
+
+    # f_weight = pyfits.open(os.path.splitext(inname)[0]+".weight.fits")
+    # f[0].data[f_weight[0].data == 0] = np.nan
 
     for l in open(headername):
         k, v, c = tuple(pyfits.Card.fromstring(l))
