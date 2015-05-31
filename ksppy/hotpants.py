@@ -51,7 +51,7 @@ def temp_chdir(path):
         os.chdir(starting_directory)
 
 def run_sex(filename, outname_root=None, tmpdir=".",
-            params_dir=params_dir):
+            params_dir=params_dir, out_dir=None):
 
     filename = os.path.abspath(filename)
 
@@ -60,6 +60,8 @@ def run_sex(filename, outname_root=None, tmpdir=".",
         outname_root, ext_name = os.path.splitext(filename_base)
 
     outname = os.path.extsep.join([outname_root, "cat"])
+    if out_dir is not None:
+        outname = os.path.abspath(os.path.join(out_dir, outname))
 
     args = [executables["sex"], filename]
 
@@ -158,12 +160,35 @@ def run_scamp(filename, tmpdir=".",
 
     #args.extend(["-WRITE_XML", "N"])
 
+
     with temp_chdir(tmpdir):
         print args
         subprocess.call(args, env=my_env)
 
     outname_root, ext_name = os.path.splitext(filename)
+    scamp_zipname = os.path.extsep.join([outname_root+"_scamp", "zip"])
+
+    import zipfile, glob
+    with zipfile.ZipFile(scamp_zipname, "w") as myzip:
+        with temp_chdir(tmpdir):
+            for fn in sorted(glob.glob(os.path.join(tmpdir, "*.ps"))):
+                myzip.write(fn)
+            myzip.write("scamp.xml")
+
     return os.path.extsep.join([outname_root, "head"])
+
+def zip_output(basename, tmpdir):
+    #outname_root, ext_name = os.path.splitext(filename)
+    zipname = os.path.extsep.join([basename+"_scamp", "zip"])
+
+    import zipfile, glob
+    with zipfile.ZipFile(zipname, "w") as myzip:
+        with temp_chdir(tmpdir):
+            for fn in sorted(glob.glob("*.ps")):
+                myzip.write(fn)
+            myzip.write("scamp.xml")
+
+    return zipname
 
 def update_header(inname, headername, outdir, prefix, extnum=0):
     import astropy.io.fits as pyfits
@@ -177,14 +202,45 @@ def update_header(inname, headername, outdir, prefix, extnum=0):
     # f_weight = pyfits.open(os.path.splitext(inname)[0]+".weight.fits")
     # f[0].data[f_weight[0].data == 0] = np.nan
 
+    header = f[extnum].header
+    for pv in ["PV2_1", "PV2_2", "PV2_3"]:
+        del header[pv]
+
     for l in open(headername):
         k, v, c = tuple(pyfits.Card.fromstring(l))
         if k != "END":
-            f[extnum].header.set(k, v, comment=c)
+            header.set(k, v, comment=c)
 
     #f[0].data[~np.isfinite(f[0].data)] = 0.
-    f.writeto(outname, clobber=True)
+    f.writeto(outname, clobber=True, output_verify="fix")
     return outname
+
+
+def update_header_sip(inname, headername, outdir, prefix, extnum=0):
+    """
+    update header for astrometry.net produced header file
+    """
+    import astropy.io.fits as pyfits
+    import os
+
+    root, ext = os.path.splitext(os.path.basename(inname))
+    outname = os.path.join(outdir, os.path.extsep.join([root, prefix]))
+
+    f = pyfits.open(inname)
+
+    # f_weight = pyfits.open(os.path.splitext(inname)[0]+".weight.fits")
+    # f[0].data[f_weight[0].data == 0] = np.nan
+
+    header = f[extnum].header
+    for pv in ["PV2_1", "PV2_2", "PV2_3"]:
+        del header[pv]
+
+    new_header = pyfits.open(headername)[0].header
+    header.extend(new_header.cards, update=True)
+
+    f.writeto(outname, clobber=True, output_verify="fix")
+    return outname
+
 
 def run_wcsremap(srcname, templatename, outdir):
 

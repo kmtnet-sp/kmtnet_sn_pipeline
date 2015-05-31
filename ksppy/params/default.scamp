@@ -49,7 +49,7 @@ MOSAIC_TYPE            UNCHANGED       # "UNCHANGED", "SAME_CRVAL",
 
 #---------------------------- Cross-identification ----------------------------
 
-CROSSID_RADIUS         3.0             # Cross-id initial radius (arcsec)
+CROSSID_RADIUS         5.0             # Cross-id initial radius (arcsec)
 
 #---------------------------- Astrometric solution ----------------------------
 
