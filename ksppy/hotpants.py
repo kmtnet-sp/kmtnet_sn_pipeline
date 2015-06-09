@@ -26,7 +26,9 @@ executables = dict(sex="/packages/astromatic/usr/bin/sex",
                    wcsremap="wcsremap",
                    scamp="/packages/astromatic/usr/bin/scamp",
                    hotpants="hotpants",
-                   swarp="/packages/astromatic/usr/bin/swarp")
+                   swarp="/packages/astromatic/usr/bin/swarp",
+                   psfex="/packages/astromatic/usr/bin/psfex",
+                   sip2pv="/home/jjlee/kmtnet/kmtnet_sn_pipeline/sip2pv")
 
 _ROOT = os.path.abspath(os.path.dirname(__file__))
 def get_params_dir():
@@ -166,14 +168,14 @@ def run_scamp(filename, tmpdir=".",
         subprocess.call(args, env=my_env)
 
     outname_root, ext_name = os.path.splitext(filename)
-    scamp_zipname = os.path.extsep.join([outname_root+"_scamp", "zip"])
+    # scamp_zipname = os.path.extsep.join([outname_root+"_scamp", "zip"])
 
-    import zipfile, glob
-    with zipfile.ZipFile(scamp_zipname, "w") as myzip:
-        with temp_chdir(tmpdir):
-            for fn in sorted(glob.glob(os.path.join(tmpdir, "*.ps"))):
-                myzip.write(fn)
-            myzip.write("scamp.xml")
+    # import zipfile, glob
+    # with zipfile.ZipFile(scamp_zipname, "w") as myzip:
+    #     with temp_chdir(tmpdir):
+    #         for fn in sorted(glob.glob(os.path.join(tmpdir, "*.ps"))):
+    #             myzip.write(fn)
+    #         myzip.write("scamp.xml")
 
     return os.path.extsep.join([outname_root, "head"])
 
@@ -184,9 +186,10 @@ def zip_output(basename, tmpdir):
     import zipfile, glob
     with zipfile.ZipFile(zipname, "w") as myzip:
         with temp_chdir(tmpdir):
-            for fn in sorted(glob.glob("*.ps")):
+            for fn in sorted(glob.glob("*.svg")):
                 myzip.write(fn)
-            myzip.write("scamp.xml")
+            for fn in sorted(glob.glob("*.xml")):
+                myzip.write(fn)
 
     return zipname
 
@@ -203,8 +206,8 @@ def update_header(inname, headername, outdir, prefix, extnum=0):
     # f[0].data[f_weight[0].data == 0] = np.nan
 
     header = f[extnum].header
-    for pv in ["PV2_1", "PV2_2", "PV2_3"]:
-        del header[pv]
+    # for pv in ["PV2_1", "PV2_2", "PV2_3"]:
+    #     del header[pv]
 
     for l in open(headername):
         k, v, c = tuple(pyfits.Card.fromstring(l))
@@ -235,6 +238,10 @@ def update_header_sip(inname, headername, outdir, prefix, extnum=0):
     for pv in ["PV2_1", "PV2_2", "PV2_3"]:
         del header[pv]
 
+    # for ctype in ["CTYPE1", "CTYPE2"]:
+    #     if  header[ctype].endswith("-SIP"):
+    #         header[ctype] = header[ctype][:-4]
+
     new_header = pyfits.open(headername)[0].header
     header.extend(new_header.cards, update=True)
 
@@ -242,15 +249,61 @@ def update_header_sip(inname, headername, outdir, prefix, extnum=0):
     return outname
 
 
+def remove_tan_from_header(inname, outdir, extnum=0):
+    """
+    update header for astrometry.net produced header file
+    """
+    import astropy.io.fits as pyfits
+    import os
+
+    basename = os.path.basename(inname)
+    outname = os.path.join(outdir, basename)
+
+    f = pyfits.open(inname)
+    header = f[extnum].header
+    for ctype in ["CTYPE1", "CTYPE2"]:
+        if  header[ctype].endswith("-SIP"):
+            header[ctype] = header[ctype][:-4]
+
+    f.writeto(outname, clobber=True, output_verify="fix")
+    return outname
+
+
+def run_sip2pv(sip_name, outname):
+
+
+    if os.path.exists(outname):
+        os.remove(outname)
+    args = [executables["sip2pv"]]
+
+    args.extend(["-i", sip_name])
+    args.extend(["-o", outname])
+
+    subprocess.call(args)
+    return outname
+
+def run_psfex(catname, tmpdir):
+
+
+    args = [executables["psfex"]]
+
+    args.extend(["-CHECKPLOT_DEV", "SVG"])
+    args.extend(["-SAMPLE_AUTOSELECT", "N"])
+    args.extend(["-PSF_SAMPLING", "0.8"])
+    args.extend([catname])
+
+    with temp_chdir(tmpdir):
+        subprocess.call(args)
+
 def run_wcsremap(srcname, templatename, outdir):
 
 
     args = [executables["wcsremap"]]
 
-    outname_root, ext_name = os.path.splitext(srcname)
+    outname_root, ext_name = os.path.splitext(os.path.basename(srcname))
     outname = os.path.join(outdir,
                            os.path.extsep.join([outname_root, "remap.fits"]))
-
+    print outname
     args.extend(["-source", srcname])
     args.extend(["-template", templatename])
     args.extend(["-outIm", outname])
@@ -268,8 +321,14 @@ def run_hotpants(srcname, templatename, outname):
     args.extend(["-tmplim", templatename])
     args.extend(["-outim", outname])
 
-    args.extend(["-tl", "-1000"])
-    args.extend(["-il", "-1000"])
+    args.extend(["-tl", "-100"])
+    args.extend(["-il", "-100"])
+    args.extend(["-nrx", "2"])
+    args.extend(["-nry", "2"])
+
+    args.extend(["-nsx", "15"])
+    args.extend(["-nsy", "15"])
+    args.extend("-ng  4 7 0.70 6 1.50 4 3.00 3 6.0".split())
 
     subprocess.call(args)
     return outname

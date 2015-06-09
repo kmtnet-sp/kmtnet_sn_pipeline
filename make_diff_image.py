@@ -33,8 +33,11 @@ def make_diff_image(src_name, ref_name, out_name, delete_temp=True):
 
         #src_templatename = "tmp/uwife040_FeII_S0_1v0_x_starsub.nh.fits"
 
-        remaped_ref = run_wcsremap(ref_name, src_name, outdir=tmpdir)
-        #remaped_ref = "tmp/uwife040_H_S0_1v0_x_starsub.ref.remap.fits"
+        from ksppy.hotpants import remove_tan_from_header
+        src_name2 = remove_tan_from_header(src_name, outdir=tmpdir)
+
+        remaped_ref = run_wcsremap(ref_name, src_name2, outdir=tmpdir)
+        # remaped_ref = "tmp_make_diff_image_N3742-1.Q0.I.150227_0549.C.008785.113327N3550.0100.nh.fits_cDtACd/ref.remap.fits"
 
         run_hotpants(src_name,
                      templatename=remaped_ref,

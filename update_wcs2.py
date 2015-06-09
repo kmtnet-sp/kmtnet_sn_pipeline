@@ -1,6 +1,6 @@
-from ksppy.hotpants import (tempfile, run_sex, run_scamp, update_header,
+from ksppy.hotpants import (tempfile, run_sex, run_scamp, 
                             update_header_sip,
-                            run_swarp)
+                            run_swarp, run_psfex)
 TMP_PREFIX = "tmp_update_wcs_"
 
 def modify_header(src_name, tmpdir):
@@ -33,26 +33,26 @@ def update_wcs(src_name, delete_temp=False):
         else:
             src_name0 = src_name
 
-        src_basename = os.path.basename(src_name0[:-4])
+        src_basename = os.path.basename(src_name0[:-5])
         
         src_name1 = modify_header(src_name0, tmpdir)
         # without header modification, scamp never finishes.
 
         catname = run_sex(src_name1, tmpdir=tmpdir, out_dir=".")
+
+        run_psfex(catname, tmpdir)
         #catname = "tmp/uwife040_FeII_S0_1v0_x_starsub.cat"
 
-        from undistort_catalog import undistort_catalog
+        from ksppy.undistort_catalog import undistort_catalog
 
         flattened_catname, xyls, xyls_flattened, header = \
             undistort_catalog(catname, tmpdir)
 
         headername = run_scamp(flattened_catname, tmpdir=tmpdir)
-        from ksppy.hotpants import zip_output
-        #os. basename
-        zipname = zip_output(src_basename, tmpdir)
 
 
-        from undistort_catalog import pv2sip, get_true_sip
+
+        from ksppy.undistort_catalog import pv2sip, get_true_sip
         sip_headername_intermediate = pv2sip(headername, 
                                              header["NAXIS1"], header["NAXIS2"],
                                              tmpdir)
@@ -63,8 +63,16 @@ def update_wcs(src_name, delete_temp=False):
                                       tmpdir)
 
         src_templatename = update_header_sip(src_name0, sip_headername,
-                                             outdir=".", prefix="nh.fits", 
+                                             outdir=tmpdir, prefix="nh_sip.fits", 
                                              extnum=0)
+
+        from ksppy.hotpants import run_sip2pv
+        pv_name = src_basename + ".nh.fits"
+        run_sip2pv(src_templatename, pv_name)
+
+        from ksppy.hotpants import zip_output
+        #os. basename
+        zipname = zip_output(src_basename, tmpdir)
 
     finally:
         if delete_temp:
@@ -99,10 +107,11 @@ def main():
 def main2():
     import os
 
-    tmpdir = "tmp_update_wcs_N2784-5.Q0.V.150303_0414.C.009568.091843N2208.0060.fits_MNKJan"
+    tmpdir = "tmp_update_wcs_N2784-5.Q0.V.150303_0414.C.009568.091843N2208.0060.fits_Hz5Ifz"
 
     basename = "N2784-5.Q0.V.150303_0414.C.009568.091843N2208.0060"
     src_name0 = "N2784-5.Q0.V.150303_0414.C.009568.091843N2208.0060.fits"
+    src_basename = basename
 
     if 0:
         src_name1 = modify_header(src_name0, tmpdir)
@@ -116,8 +125,10 @@ def main2():
     else:
         catname = basename + "_tan.cat"
 
-    if 1:
-        from undistort_catalog import undistort_catalog
+    run_psfex(catname, tmpdir)
+    
+    if 0:
+        from ksppy.undistort_catalog import undistort_catalog
 
         flattened_catname, xyls, xyls_flattened, header = \
             undistort_catalog(catname, tmpdir)
@@ -135,7 +146,7 @@ def main2():
         zipname = zip_output(basename, tmpdir)
 
 
-        from undistort_catalog import pv2sip, get_true_sip
+        from ksppy.undistort_catalog import pv2sip, get_true_sip
         sip_headername_intermediate = pv2sip(headername, 
                                              header["NAXIS1"], header["NAXIS2"],
                                              tmpdir)
@@ -146,9 +157,12 @@ def main2():
                                       tmpdir)
 
         src_templatename = update_header_sip(src_name0, sip_headername,
-                                             outdir=".", prefix="nh.fits", 
+                                             outdir=tmpdir, prefix="nh.fits", 
                                              extnum=0)
 
+        from ksppy.hotpants import run_sip2pv
+        pv_name = src_basename + ".nh.fits"
+        run_sip2pv(src_templatename, pv_name)
 
 if __name__ == "__main__":
     main()
