@@ -95,6 +95,43 @@ def update_cat_coord(cat_name, fits_name, outcat_name):
     cat.writeto(outcat_name, clobber=True)
 
 
+def load_magzpt(magzpt_name):
+    l = open(magzpt_name).readlines()
+    d = dict()
+    for l1 in l:
+        l1s = l1.strip()
+        if l1s.startswith("#"):
+            continue
+        k, v = l1s.split("=")
+        d[k] = float(v)
+    return d
+
+def apply_flux_cal(magzpt_dict, x, y, mag_inst):
+    cx, cy = magzpt_dict["PHOTCP1"], magzpt_dict["PHOTCP2"]
+    magzp, magzp_r2 = magzpt_dict["MAGZP"], magzpt_dict["MAGZPR2"]
+
+    R = ((x-cx)**2 + (y-cy)**2)**.5
+    mag_phot = mag_inst + magzp + R**2 * magzp_r2
+
+    return mag_phot
+
+
+def update_cat_mag(cat_name, magzpt_name, outcat_name):
+
+    magzpt_dict = load_magzpt(magzpt_name)
+
+    cat = pyfits.open(cat_name)
+
+    x = cat[2].data["XWIN_IMAGE"]
+    y = cat[2].data["YWIN_IMAGE"]
+    mag_inst = cat[2].data["MAG_AUTO"]
+
+    mag_phot = apply_flux_cal(magzpt_dict, x, y, mag_inst)
+    cat[2].data["MAG_AUTO"] = mag_phot
+
+    cat.writeto(outcat_name, clobber=True)
+
+
 def do_phot(cat_name, fits_name, band, phot_dir, dir):
 
     if band not in band_keys:
