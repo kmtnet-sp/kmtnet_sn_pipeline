@@ -8,23 +8,6 @@ def fig_to_png(fig, outname):
     FigureCanvasAgg(fig)
     fig.savefig(outname)
 
-def update_cat_coord(cat_name, fits_name, outcat_name):
-    cat = pyfits.open(cat_name)
-    fits = pyfits.open(fits_name)
-
-    from astropy.wcs import WCS
-    wcs = WCS(fits[0].header)
-
-    x = cat[2].data["XWIN_IMAGE"]
-    y = cat[2].data["YWIN_IMAGE"]
-
-    ra, dec = wcs.all_pix2world(x, y, 1)
-
-    cat[2].data["X_WORLD"][:] = ra
-    cat[2].data["Y_WORLD"][:] = dec
-
-    cat.writeto(outcat_name, clobber=True)
-
 
 if 0:
     fmt = "fk5; point(%15f, %15f)\n"
@@ -54,6 +37,7 @@ def get_phot_file(center, dir):
     else:
         ra0, dec0 = center
         phot_name0 = "apass_%.4f_%.5f.csv" % (ra0, dec0)
+        radius0 = 0.85
 
 
     import os
@@ -83,20 +67,45 @@ def extract_header_from_cat(cat):
     header = pyfits.Header(cards=cards)
     return header
 
+def get_nh_wcs(fits_name):
+    if fits_name.endswith(".fz"):
+        extnum = 1
+    else:
+        extnum = 0
+
+    fits = pyfits.open(fits_name)
+    from astropy.wcs import WCS
+    wcs = WCS(fits[extnum].header)
+
+    return wcs
+
+def update_cat_coord(cat_name, fits_name, outcat_name):
+    cat = pyfits.open(cat_name)
+
+    wcs = get_nh_wcs(fits_name)
+
+    x = cat[2].data["XWIN_IMAGE"]
+    y = cat[2].data["YWIN_IMAGE"]
+
+    ra, dec = wcs.all_pix2world(x, y, 1)
+
+    cat[2].data["X_WORLD"][:] = ra
+    cat[2].data["Y_WORLD"][:] = dec
+
+    cat.writeto(outcat_name, clobber=True)
+
+
 def do_phot(cat_name, fits_name, band, phot_dir, dir):
 
     if band not in band_keys:
         raise ValueError("Band %s is not supported." % band)
 
     cat = pyfits.open(cat_name)
-    fits = pyfits.open(fits_name)
 
     x = cat[2].data["XWIN_IMAGE"]
     y = cat[2].data["YWIN_IMAGE"]
 
-
-    from astropy.wcs import WCS
-    wcs = WCS(fits[0].header)
+    wcs = get_nh_wcs(fits_name)
 
     if hasattr(wcs, "calcFootprint"):
         footprint = wcs.calcFootprint()
@@ -111,6 +120,8 @@ def do_phot(cat_name, fits_name, band, phot_dir, dir):
     phot_file = get_phot_file(center, phot_dir)
     df = pd.read_csv(phot_file)
 
+    import scipy
+    import scipy.spatial
     from scipy.spatial import KDTree
     xx, yy = wcs.all_world2pix(df["radeg"], df["decdeg"], 1)
 
@@ -140,12 +151,24 @@ def do_phot(cat_name, fits_name, band, phot_dir, dir):
     diffmag = phot_mag - inst_mag
     diffmagE = (inst_magE**2 + phot_magE**2)**.5
     diffmag0 = diffmag.copy()
-    diffmag[(phot_mag < 14.5) | (phot_mag > 17.5)] = np.nan
+
+    if band == "B":
+        mag_low, mag_up = 17.5, 14.5
+    elif band == "V":
+        mag_low, mag_up = 15.5, 13.0
+    elif band == "i":
+        mag_low, mag_up = 16.0, 13.5
+    else:
+        mag_low, mag_up = 16., 13.5
+
+
+    diffmag[(phot_mag < mag_up) | (phot_mag > mag_low)] = np.nan
 
     maskE = (diffmagE > 0.08).values
 
     #draw_figure1()
-    outfig1name = os.path.join(dir, "fig.png")
+    basename = os.path.basename(cat_name)
+    outfig1name = os.path.join(dir, basename + ".fig1.png")
     draw_figure1(phot_mag, phot_magE, diffmag, diffmagE, diffmag0, maskE,
                  outfig1name)
 
@@ -181,7 +204,7 @@ def do_phot(cat_name, fits_name, band, phot_dir, dir):
     p = np.polyfit(dR[msk][m_finite]**2, diffmag.values[m_finite], 1, w=weight[m_finite])
     dM = np.polyval(p, dR[msk]**2)
 
-    outfig2name = os.path.join(dir, "fig2.png")
+    outfig2name = os.path.join(dir, basename + ".fig2.png")
     draw_figure2(dR, diffmag, diffmagE, msk, m_finite, p, dM, mag_std,
                  outfig2name)
 

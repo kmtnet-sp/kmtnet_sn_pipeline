@@ -3,7 +3,7 @@ from ksppy.phot import do_phot, save_magzp
 def main():
     import argparse
 
-    parser = argparse.ArgumentParser(description='update wcs.')
+    parser = argparse.ArgumentParser(description='do phot-cal.')
     parser.add_argument('cat_name', type=str, help='input file name')
     parser.add_argument('fits_name', type=str, help='input nh.fits name')
     parser.add_argument('band', type=str, help='filter band (B, V, g, r, i)')
