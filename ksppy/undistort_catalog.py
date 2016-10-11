@@ -20,8 +20,14 @@ def convert_xy(header, x, y):
         wcs = pywcs.WCS(header)
         #print dir(wcs.wcs)
         #mat = np.matrix(wcs.wcs.piximg_matrix) #pixel_scale_matrix
-        mat = np.matrix([[header["CDELT1"], 0.],
-                         [0, header["CDELT2"]]])
+
+        if "CDELT1" in header:
+            mat = np.matrix([[header["CDELT1"], 0.],
+                             [0, header["CDELT2"]]])
+        else:
+            mat = np.matrix([[header["CD1_1"], 0.],
+                             [0, header["CD2_2"]]])
+
         print mat
         xy2 = mat * (x1, y1)
         x2, y2 = np.array(xy2)
