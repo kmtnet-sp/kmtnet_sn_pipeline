@@ -145,7 +145,7 @@ def run_swarp(filename, outname_root=None, tmpdir=".",
 
     return os.path.join(tmpdir, outname)
 
-def run_scamp(filename, tmpdir=".",
+def run_scamp(filename, tmpdir=".", catname=None,
               params_dir=params_dir):
 
     filename = os.path.abspath(filename)
@@ -159,6 +159,14 @@ def run_scamp(filename, tmpdir=".",
         a1 = "-%s" % par_name
         a2 = os.path.join(params_dir, par_file)
         args.extend([a1, a2])
+
+    if catname is not None:
+        args.extend(["-ASTREF_CATALOG", "FILE"])
+        catname = os.path.abspath(catname)
+        args.extend(["-ASTREFCAT_NAME", catname])
+
+        print "catname", catname
+
 
     #args.extend(["-WRITE_XML", "N"])
 

@@ -8,12 +8,13 @@ FGROUP_RADIUS          2.0             # Max dist (deg) between field groups
 
 #---------------------------- Reference catalogs ------------------------------
 
-REF_SERVER         cocat1.u-strasbg.fr # Internet addresses of catalog servers
+#REF_SERVER         cocat1.u-strasbg.fr # Internet addresses of catalog servers
+REF_SERVER         vizier.u-strasbg.fr
 #ASTREF_CATALOG         FILE         # "NONE","FILE",
                                        # "USNO-A1","USNO-A2","USNO-B1",
                                        # "GSC-1.3","GSC-2.2",
                                        # "UCAC-1", "UCAC-2" or "2MASS"
-#ASTREFCAT_NAME         USNO-A1.0_0926-2209_r44.cat   # Local astrometric reference catalogs
+ASTREFCAT_NAME         ref.cat   # Local astrometric reference catalogs
 #ASTREF_CATALOG         USNO-B1         # "NONE","FILE",
 ASTREF_CATALOG         GSC-2.3         # "NONE","FILE",
                                        # "USNO-A1","USNO-A2","USNO-B1",
@@ -26,7 +27,7 @@ ASTREFERR_KEYS         ERRA_WORLD, ERRB_WORLD, ERRTHETA_WORLD
 SAVE_REFCATALOG        N               # Save ref catalogs in FITS-LDAC format?
 REFOUT_CATPATH         .               # Save path for reference catalogs
 ASTREF_WEIGHT          1
-ASTREF_BAND            REDDEST
+#ASTREF_BAND            REDDEST
 
 #--------------------------- Merged output catalogs ---------------------------
 
@@ -99,6 +100,6 @@ XML_NAME               scamp.xml       # Filename for XML output
 NTHREADS               0               # Number of simultaneous threads for
                                        # the SMP version of SCAMP
                                        # 0 = automatic
-#CDSCLIENT_EXEC         jjfind2mass
+CDSCLIENT_EXEC         findgsc2.3
 
 #PROJECTION_TYPE        TPV
