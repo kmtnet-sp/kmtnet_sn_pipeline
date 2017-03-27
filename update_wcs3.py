@@ -48,6 +48,12 @@ def update_wcs(src_name, cat_name, delete_temp=False):
         flattened_catname, xyls, xyls_flattened, header = \
             undistort_catalog(catname, tmpdir)
 
+        print "Comparing center coordinate: ", flattened_catname,cat_name
+        from ksppy.check_overwrap import get_dist
+        d_arcmin = get_dist(flattened_catname, cat_name)
+        if d_arcmin > 15:
+            raise RuntimeError("Catalog center is too far from the image center: %.1f'" % d_arcmin)
+
         headername = run_scamp(flattened_catname,
                                catname=cat_name,
                                tmpdir=tmpdir)
