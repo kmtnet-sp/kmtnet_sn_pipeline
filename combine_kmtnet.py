@@ -11,6 +11,7 @@ chip_info = [("ne", (1, 9), (9826, -287)),
              ("se", (17, 25), (9761, 9891)),
              ("sw", (25, 33), (178, 9891))]
 
+import astropy.units as u
 
 def combine_kmtnet(fn):
 
@@ -18,11 +19,11 @@ def combine_kmtnet(fn):
     f = pyfits.open(fn)
 
     import astropy.units as u
-    from astropy.coordinates import ICRS
+    from astropy.coordinates import Angle, ICRS
     f[0].verify("fix")
 
-    c = ICRS(f[0].header["RA"], f[0].header["DEC"],
-             unit=(u.hourangle, u.degree))
+    c = ICRS(Angle(f[0].header["RA"], unit=u.hourangle), 
+             Angle(f[0].header["DEC"], unit=u.degree))
 
     for chip_id, (ext1, ext2), (crpix1, crpix2) in chip_info:
 
@@ -85,9 +86,9 @@ def combine_kmtnet(fn):
         # delete unnecessary keys
         del header["CDELT1"]
         del header["CDELT2"]
-        del header["DATASEC"]
-        del header["LTV1"]
-        del header["LTV2"]
+        for k in ["DATASEC", "LTV1", "LTV2"]:
+            if k in header:
+                del header[k]
 
         # replace key names
         for k in "RA DEC ST".split():

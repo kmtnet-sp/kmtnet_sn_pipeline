@@ -81,7 +81,7 @@ def run_sex(filename, outname_root=None, tmpdir=".",
     args.extend(["-CATALOG_NAME", outname])
 
     with temp_chdir(tmpdir):
-        subprocess.call(args)
+        subprocess.call(args, env=my_env)
 
     return os.path.join(tmpdir, outname)
 
@@ -113,7 +113,7 @@ def run_sex_diff(filename, outname_root=None, tmpdir=".",
     args.extend(["-CATALOG_NAME", outname])
 
     with temp_chdir(tmpdir):
-        subprocess.call(args)
+        subprocess.call(args, env=my_env)
 
     return os.path.join(tmpdir, outname)
 
@@ -141,7 +141,7 @@ def run_swarp(filename, outname_root=None, tmpdir=".",
         args.extend(["-%s" % par_name, par_file])
 
     with temp_chdir(tmpdir):
-        subprocess.call(args)
+        subprocess.call(args, env=my_env)
 
     return os.path.join(tmpdir, outname)
 
@@ -287,7 +287,7 @@ def run_sip2pv(sip_name, outname):
     args.extend(["-i", sip_name])
     args.extend(["-o", outname])
 
-    subprocess.call(args)
+    subprocess.call(args, env=my_env)
     return outname
 
 def run_psfex(catname, tmpdir):
@@ -301,7 +301,7 @@ def run_psfex(catname, tmpdir):
     args.extend([catname])
 
     with temp_chdir(tmpdir):
-        subprocess.call(args)
+        subprocess.call(args, env=my_env)
 
 def run_wcsremap(srcname, templatename, outdir):
 
@@ -316,7 +316,7 @@ def run_wcsremap(srcname, templatename, outdir):
     args.extend(["-template", templatename])
     args.extend(["-outIm", outname])
 
-    subprocess.call(args)
+    subprocess.call(args, env=my_env)
     return outname
 
 
@@ -338,7 +338,7 @@ def run_hotpants(srcname, templatename, outname):
     args.extend(["-nsy", "15"])
     args.extend("-ng  4 7 0.70 6 1.50 4 3.00 3 6.0".split())
 
-    subprocess.call(args)
+    subprocess.call(args, env=my_env)
     return outname
 
 
