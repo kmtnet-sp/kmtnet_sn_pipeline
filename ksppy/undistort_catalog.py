@@ -140,8 +140,7 @@ def undistort_catalog(cat_name, tmpdir):
         col2 = fits.Column(name='Y', format='E', array=iy.flat)
         
         cols = fits.ColDefs([col1, col2])
-        tbhdu = fits.new_table(cols)
-
+        tbhdu = fits.BinTableHDU.from_columns(cols)
 
         grid_catname = os.path.join(tmpdir, basename + "_grid.cat")
         tbhdu.writeto(grid_catname, clobber=True)
@@ -153,7 +152,7 @@ def undistort_catalog(cat_name, tmpdir):
         col2 = fits.Column(name='Y', format='E', array=iy4)
         
         cols = fits.ColDefs([col1, col2])
-        tbhdu = fits.new_table(cols)
+        tbhdu = fits.BinTableHDU.from_columns(cols)
 
         grid_catname_flattened = os.path.join(tmpdir, basename + "_grid_flattened.cat")
         tbhdu.writeto(grid_catname_flattened, clobber=True)
@@ -263,7 +262,8 @@ def undistort_catalog2(cat_name, tmpdir):
 
 
 def pv2sip(pv_headerfile, naxis1, naxis2, tmpdir):
-    pv2sip_name = "/home/jjlee/kmtnet/astrometry.net/util/wcs-pv2sip"
+    # pv2sip_name = "/home/jjlee/kmtnet/astrometry.net/util/wcs-pv2sip"
+    pv2sip_name = "wcs-pv2sip"
     basename, ext = os.path.splitext(os.path.basename(pv_headerfile))
     sip_headerfile = os.path.join(tmpdir, basename + ".sip_head")
     args = [pv2sip_name, "-s",
@@ -283,8 +283,10 @@ def pv2sip(pv_headerfile, naxis1, naxis2, tmpdir):
 
 
 def get_true_sip(sip_headerfile, xyls, xyls_flattened, tmpdir):
-    xy2rd_name = "/home/jjlee/kmtnet/astrometry.net/util/wcs-xy2rd"
-    fit_wcs_name = "/home/jjlee/kmtnet/astrometry.net/util/fit-wcs"
+    # xy2rd_name = "/home/jjlee/kmtnet/astrometry.net/util/wcs-xy2rd"
+    # fit_wcs_name = "/home/jjlee/kmtnet/astrometry.net/util/fit-wcs"
+    xy2rd_name = "wcs-xy2rd"
+    fit_wcs_name = "fit-wcs"
     basename, ext = os.path.splitext(os.path.basename(xyls))
     rdls = os.path.join(tmpdir, basename + ".rdls")
     args = [xy2rd_name, 
