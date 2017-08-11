@@ -18,17 +18,23 @@ import tempfile
 import os
 import numpy as np
 
-my_env = os.environ.copy()
-my_env["LD_LIBRARY_PATH"]="/packages/astromatic/usr/lib"
+PACKAGE_DIR = os.environ.get("KSPPY_PACKAGES_DIR", "/packages")
 
-executables = dict(sex="/packages/astromatic/usr/bin/sex",
+my_env = os.environ.copy()
+my_env["LD_LIBRARY_PATH"] =":".join([os.path.join(PACKAGE_DIR,
+                                                  "astromatic/usr/lib"),
+                                     os.path.join(PACKAGE_DIR,
+                                                  "astromatic/usr/lib/atlas")])
+
+
+executables = dict(sex=os.path.join(PACKAGE_DIR, "astromatic/usr/bin/sex"),
                    #swarp="/data/packages/astromatic/usr/bin/swarp",
                    wcsremap="wcsremap",
-                   scamp="/packages/astromatic/usr/bin/scamp",
                    hotpants="hotpants",
-                   swarp="/packages/astromatic/usr/bin/swarp",
-                   psfex="/packages/astromatic/usr/bin/psfex",
-                   sip2pv="/home/jjlee/kmtnet/kmtnet_sn_pipeline/sip2pv")
+                   sip2pv="sip2pv",
+                   scamp=os.path.join(PACKAGE_DIR, "astromatic/usr/bin/scamp"),
+                   psfex=os.path.join(PACKAGE_DIR, "astromatic/usr/bin/psfex"),
+                   swarp=os.path.join(PACKAGE_DIR, "astromatic/usr/bin/swarp"))
 
 _ROOT = os.path.abspath(os.path.dirname(__file__))
 def get_params_dir():
@@ -292,6 +298,11 @@ def run_sip2pv(sip_name, outname):
 
 def run_psfex(catname, tmpdir):
 
+
+    args = ["ldd", executables["psfex"]]
+
+    with temp_chdir(tmpdir):
+        subprocess.call(args, env=my_env)
 
     args = [executables["psfex"]]
 

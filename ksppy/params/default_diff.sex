@@ -13,7 +13,7 @@ PARAMETERS_NAME  default4psfex_diff.param  # name of the file containing catalog
 #------------------------------- Extraction ----------------------------------
 
 DETECT_TYPE      CCD            # CCD (linear) or PHOTO (with gamma correction)
-DETECT_MINAREA   10              # minimum number of pixels above threshold
+DETECT_MINAREA   5              # minimum number of pixels above threshold
 DETECT_THRESH    2.5            # <sigmas> or <threshold>,<ZP> in mag.arcsec-2
 ANALYSIS_THRESH  2.5            # <sigmas> or <threshold>,<ZP> in mag.arcsec-2
 
