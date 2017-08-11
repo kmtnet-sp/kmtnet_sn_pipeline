@@ -299,10 +299,10 @@ def run_sip2pv(sip_name, outname):
 def run_psfex(catname, tmpdir):
 
 
-    args = ["ldd", executables["psfex"]]
+    # args = ["ldd", executables["psfex"]]
 
-    with temp_chdir(tmpdir):
-        subprocess.call(args, env=my_env)
+    # with temp_chdir(tmpdir):
+    #     subprocess.call(args, env=my_env)
 
     args = [executables["psfex"]]
 
