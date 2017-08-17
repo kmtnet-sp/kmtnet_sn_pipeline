@@ -16,7 +16,7 @@ if 0:
 
 
 def get_phot(ra0, dec0, radius0=0.85):
-    ra0, dec0 = center
+    # ra0, dec0 = center
 
     print "downloading a csv file"
     url = "https://www.aavso.org/cgi-bin/apass_download.pl?ra=%.4f&dec=%.5f&radius=%.2f&outtype=1" % (ra0, dec0, radius0)
@@ -263,10 +263,7 @@ def do_phot(cat_name, fits_name, band, phot_dir, dir,
     return r
 
 
-def save_phot(fits_name, band, phot_file):
-
-    if band not in band_keys:
-        raise ValueError("Band %s is not supported." % band)
+def save_phot(fits_name, phot_file):
 
     wcs = get_nh_wcs(fits_name)
 
@@ -276,7 +273,8 @@ def save_phot(fits_name, band, phot_file):
         footprint = wcs.calc_footprint()
 
     center = footprint.mean(axis=0)
-    s = get_phot(center, radius0=0.85)
+    ra0, dec0 = center
+    s = get_phot(ra0, dec0, radius0=0.85)
 
     open(phot_file, "w").write(s)
 
