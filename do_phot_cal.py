@@ -17,11 +17,15 @@ def main():
                         const=True, default=".",
                         help='directory where output figures will be located')
 
+    parser.add_argument('--phot-file', dest='phot_file',
+                        default=None,
+                        help='file containing known magnitudes')
 
     args = parser.parse_args()
 
-    r = do_phot(args.cat_name, args.fits_name, args.band, 
-                args.phot_dir, args.fig_dir)
+    r = do_phot(args.cat_name, args.fits_name, args.band,
+                args.phot_dir, args.fig_dir,
+                phot_file=args.phot_file)
 
     save_magzp(r, args.magzp_name)
 

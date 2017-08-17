@@ -15,6 +15,18 @@ if 0:
     open("test.reg","w").writelines(s)
 
 
+def get_phot(ra0, dec0, radius0=0.85):
+    ra0, dec0 = center
+
+    print "downloading a csv file"
+    url = "https://www.aavso.org/cgi-bin/apass_download.pl?ra=%.4f&dec=%.5f&radius=%.2f&outtype=1" % (ra0, dec0, radius0)
+
+    import urllib2
+    s = urllib2.urlopen(url).read()
+
+    return s
+
+
 def get_phot_file(center, dir):
     try:
         import healpy
@@ -44,11 +56,7 @@ def get_phot_file(center, dir):
     phot_name = os.path.join(dir, phot_name0)
 
     if not os.path.exists(phot_name):
-        print "downloading a csv file"
-        url = "https://www.aavso.org/cgi-bin/apass_download.pl?ra=%.4f&dec=%.5f&radius=%.2f&outtype=1" % (ra0, dec0, radius0)
-
-        import urllib2
-        s = urllib2.urlopen(url).read()
+        s = get_phot(ra0, dec0, radius0)
         open(phot_name, "w").write(s)
 
     return phot_name
@@ -67,6 +75,7 @@ def extract_header_from_cat(cat):
     header = pyfits.Header(cards=cards)
     return header
 
+
 def get_nh_wcs(fits_name):
     if fits_name.endswith(".fz"):
         extnum = 1
@@ -78,6 +87,7 @@ def get_nh_wcs(fits_name):
     wcs = WCS(fits[extnum].header)
 
     return wcs
+
 
 def update_cat_coord(cat_name, fits_name, outcat_name):
     cat = pyfits.open(cat_name)
@@ -106,6 +116,7 @@ def load_magzpt(magzpt_name):
         d[k] = float(v)
     return d
 
+
 def apply_flux_cal(magzpt_dict, x, y, mag_inst):
     cx, cy = magzpt_dict["PHOTCP1"], magzpt_dict["PHOTCP2"]
     magzp, magzp_r2 = magzpt_dict["MAGZP"], magzpt_dict["MAGZPR2"]
@@ -132,7 +143,8 @@ def update_cat_mag(cat_name, magzpt_name, outcat_name):
     cat.writeto(outcat_name, clobber=True)
 
 
-def do_phot(cat_name, fits_name, band, phot_dir, dir):
+def do_phot(cat_name, fits_name, band, phot_dir, dir,
+            phot_file=None):
 
     if band not in band_keys:
         raise ValueError("Band %s is not supported." % band)
@@ -144,17 +156,19 @@ def do_phot(cat_name, fits_name, band, phot_dir, dir):
 
     wcs = get_nh_wcs(fits_name)
 
-    if hasattr(wcs, "calcFootprint"):
-        footprint = wcs.calcFootprint()
-    else:
-        footprint = wcs.calc_footprint()
+    # radius = (np.sum((footprint - center)**2, axis=1)**.5).max()
 
-    center = footprint.mean(axis=0)
-    #radius = (np.sum((footprint - center)**2, axis=1)**.5).max()
+    if phot_file is None:
 
+        if hasattr(wcs, "calcFootprint"):
+            footprint = wcs.calcFootprint()
+        else:
+            footprint = wcs.calc_footprint()
+
+        center = footprint.mean(axis=0)
+        phot_file = get_phot_file(center, phot_dir)
 
     import pandas as pd
-    phot_file = get_phot_file(center, phot_dir)
     df = pd.read_csv(phot_file)
 
     import scipy
@@ -249,13 +263,30 @@ def do_phot(cat_name, fits_name, band, phot_dir, dir):
     return r
 
 
+def save_phot(fits_name, band, phot_file):
+
+    if band not in band_keys:
+        raise ValueError("Band %s is not supported." % band)
+
+    wcs = get_nh_wcs(fits_name)
+
+    if hasattr(wcs, "calcFootprint"):
+        footprint = wcs.calcFootprint()
+    else:
+        footprint = wcs.calc_footprint()
+
+    center = footprint.mean(axis=0)
+    s = get_phot(center, radius0=0.85)
+
+    open(phot_file, "w").write(s)
+
+
 def save_magzp(r, outname):
     l = []
     for k, v in r.iteritems():
         l.append("%s=%s\n" % (k, v))
 
     open(outname, "w").writelines(l)
-
 
 
 def draw_figure2(dR, diffmag, diffmagE, msk, m_finite, p, dM, mag_std,
