@@ -23,7 +23,7 @@ def get_dist(src, ref):
 
     fc = pyfits.open(ref)
 
-    lon2, lat2 = get_median_lonlat(np.median(fc[-1].data["X_WORLD"]), fc[-1].data["Y_WORLD"]))
+    lon2, lat2 = get_median_lonlat(fc[-1].data["X_WORLD"], fc[-1].data["Y_WORLD"])
 
     c1 = SkyCoord(lon1, lat1)
     c2 = SkyCoord(lon2, lat2)
