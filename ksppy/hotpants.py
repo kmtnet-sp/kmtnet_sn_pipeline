@@ -18,23 +18,30 @@ import tempfile
 import os
 import numpy as np
 
-PACKAGE_DIR = os.environ.get("KSPPY_PACKAGES_DIR", "/packages")
+# PACKAGE_DIR = os.environ.get("KSPPY_PACKAGES_DIR", "/packages")
 
-my_env = os.environ.copy()
-my_env["LD_LIBRARY_PATH"] =":".join([os.path.join(PACKAGE_DIR,
-                                                  "astromatic/usr/lib"),
-                                     os.path.join(PACKAGE_DIR,
-                                                  "astromatic/usr/lib/atlas")])
+# my_env = os.environ.copy()
+# my_env["LD_LIBRARY_PATH"] =":".join([os.path.join(PACKAGE_DIR,
+#                                                   "astromatic/usr/lib"),
+#                                      os.path.join(PACKAGE_DIR,
+#                                                   "astromatic/usr/lib/atlas")])
 
 
-executables = dict(sex=os.path.join(PACKAGE_DIR, "astromatic/usr/bin/sex"),
-                   #swarp="/data/packages/astromatic/usr/bin/swarp",
-                   wcsremap="wcsremap",
-                   hotpants="hotpants",
-                   sip2pv="sip2pv",
-                   scamp=os.path.join(PACKAGE_DIR, "astromatic/usr/bin/scamp"),
-                   psfex=os.path.join(PACKAGE_DIR, "astromatic/usr/bin/psfex"),
-                   swarp=os.path.join(PACKAGE_DIR, "astromatic/usr/bin/swarp"))
+# executables = dict(sex=os.path.join(PACKAGE_DIR, "astromatic/usr/bin/sex"),
+#                    #swarp="/data/packages/astromatic/usr/bin/swarp",
+#                    #wcsremap="wcsremap",
+#                    #hotpants="hotpants",
+#                    #sip2pv="sip2pv",
+#                    wcsremap=os.path.join(PACKAGE_DIR, "wcsremap/wcsremap"),
+#                    hotpants=os.path.join(PACKAGE_DIR, "hotpants/hotpants"),
+#                    sip2pv=os.path.join(PACKAGE_DIR, "sip/sip2pv"),
+#                    scamp=os.path.join(PACKAGE_DIR, "astromatic/usr/bin/scamp"),
+#                    psfex=os.path.join(PACKAGE_DIR, "astromatic/usr/bin/psfex"),
+#                    swarp=os.path.join(PACKAGE_DIR, "astromatic/usr/bin/swarp"))
+
+import exec_path
+my_env = exec_path.get_env()
+executables = exec_path.get_exec_path()
 
 _ROOT = os.path.abspath(os.path.dirname(__file__))
 def get_params_dir():

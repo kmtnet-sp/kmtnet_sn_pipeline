@@ -2,6 +2,13 @@ import astropy.io.fits as pyfits
 import astropy.wcs as pywcs
 import os
 
+import exec_path
+executables = exec_path.get_exec_path()
+
+pv2sip_name = executables["pv2sip"]
+xy2rd_name = executables["xy2rd"]
+fit_wcs_name = executables["fit_wcs"]
+
 if 0:
     f = pyfits.open("kmtc.20150329.007590.ne.fits")
     f[0].header["CTYPE1"]  = 'RA---TAN'
@@ -263,7 +270,6 @@ def undistort_catalog2(cat_name, tmpdir):
 
 def pv2sip(pv_headerfile, naxis1, naxis2, tmpdir):
     # pv2sip_name = "/home/jjlee/kmtnet/astrometry.net/util/wcs-pv2sip"
-    pv2sip_name = "wcs-pv2sip"
     basename, ext = os.path.splitext(os.path.basename(pv_headerfile))
     sip_headerfile = os.path.join(tmpdir, basename + ".sip_head")
     args = [pv2sip_name, "-s",
@@ -285,8 +291,6 @@ def pv2sip(pv_headerfile, naxis1, naxis2, tmpdir):
 def get_true_sip(sip_headerfile, xyls, xyls_flattened, tmpdir):
     # xy2rd_name = "/home/jjlee/kmtnet/astrometry.net/util/wcs-xy2rd"
     # fit_wcs_name = "/home/jjlee/kmtnet/astrometry.net/util/fit-wcs"
-    xy2rd_name = "wcs-xy2rd"
-    fit_wcs_name = "fit-wcs"
     basename, ext = os.path.splitext(os.path.basename(xyls))
     rdls = os.path.join(tmpdir, basename + ".rdls")
     args = [xy2rd_name, 
