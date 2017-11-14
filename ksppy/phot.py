@@ -165,8 +165,13 @@ def do_phot(cat_name, fits_name, band, phot_dir, dir,
         else:
             footprint = wcs.calc_footprint()
 
-        center = footprint.mean(axis=0)
-        phot_file = get_phot_file(center, phot_dir)
+        from check_overwrap import get_mean_lonlat
+        center = get_mean_lonlat(footprint[:,0], footprint[:,1])
+        # footprint.mean(axis=0)
+        # print(footprint, center)
+        ra0, dec0 = center[0].deg, center[1].deg
+
+        phot_file = get_phot_file((ra0, dec0), phot_dir)
 
     import pandas as pd
     df = pd.read_csv(phot_file)
@@ -272,8 +277,12 @@ def save_phot(fits_name, phot_file):
     else:
         footprint = wcs.calc_footprint()
 
-    center = footprint.mean(axis=0)
-    ra0, dec0 = center
+    from check_overwrap import get_mean_lonlat
+    center = get_mean_lonlat(footprint[:,0], footprint[:,1])
+    # footprint.mean(axis=0)
+    # print(footprint, center)
+    ra0, dec0 = center[0].deg, center[1].deg
+    print(ra0, dec0)
     s = get_phot(ra0, dec0, radius0=0.85)
 
     open(phot_file, "w").write(s)

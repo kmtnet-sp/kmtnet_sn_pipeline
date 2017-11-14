@@ -8,11 +8,16 @@ from astropy.coordinates import SkyCoord
 def get_median_lonlat(lon, lat):
     "lon, lat in degrees"
     x, y, z = spherical_to_cartesian(1, (lat / 180. * np.pi), (lon / 180. * np.pi))
-    # print(np.median(x))                                                                          
-    # print(np.median(y))                                                                          
-    # print(np.median(z))                                                                          
 
     r, lat, lon = cartesian_to_spherical(np.median(x), np.median(y), np.median(z))
+    return lon, lat
+
+
+def get_mean_lonlat(lon, lat):
+    "lon, lat in degrees"
+    x, y, z = spherical_to_cartesian(1, (lat / 180. * np.pi), (lon / 180. * np.pi))
+
+    r, lat, lon = cartesian_to_spherical(np.mean(x), np.mean(y), np.mean(z))
     return lon, lat
 
 
