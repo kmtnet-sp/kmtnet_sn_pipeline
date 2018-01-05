@@ -114,7 +114,7 @@ def fetch_catalog(ra, dec, radius, outname):
     fname = "table.out"
 
     import os
-    cmd = "findgsc2.3 -c %s -r %.1f -m 99999 -T180 > %s" % (cc, radius, 
+    cmd = "findgsc2.3 -c %s -r %.1f -m 999999 -T180 > %s" % (cc, radius, 
                                                             fname)
     r = os.system(cmd)
 
