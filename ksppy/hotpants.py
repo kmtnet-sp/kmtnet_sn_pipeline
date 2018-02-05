@@ -354,6 +354,8 @@ def run_hotpants(srcname, templatename, outname):
 
     args.extend(["-nsx", "15"])
     args.extend(["-nsy", "15"])
+    args.extend(["-n", "i"])
+
     args.extend("-ng  4 7 0.70 6 1.50 4 3.00 3 6.0".split())
 
     subprocess.call(args, env=my_env)
